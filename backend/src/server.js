@@ -52,6 +52,11 @@ app.get("/api/health", (req, res) => {
   })
 })
 
+// Root route
+app.get("/", (req, res) => {
+  res.send("API is running...")
+})
+
 // Error handling middleware
 app.use(errorHandler)
 

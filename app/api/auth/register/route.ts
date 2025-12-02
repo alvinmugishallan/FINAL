@@ -1,56 +1,45 @@
 import { NextResponse } from "next/server"
-import { hashPassword, generateToken } from "@/lib/auth"
-import { mockUsers, getNextUserId } from "@/lib/db"
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, firstName, lastName, role, faculty, department } = body
 
-    // Validation
-    if (!email || !password || !firstName || !lastName || !role) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    const response = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data.message || "Registration failed" },
+        { status: response.status }
+      )
     }
-
-    // Check if user already exists
-    const existingUser = mockUsers.find((u) => u.email === email)
-    if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 409 })
-    }
-
-    // Hash password
-    const passwordHash = await hashPassword(password)
-
-    // Create user
-    const user = {
-      id: getNextUserId(),
-      email,
-      passwordHash,
-      firstName,
-      lastName,
-      role,
-      faculty,
-      department,
-      createdAt: new Date(),
-    }
-
-    mockUsers.push(user)
-
-    // Generate token
-    const token = await generateToken(user.id, user.email, user.role)
-
-    // Return user without password
-    const { passwordHash: _, ...userWithoutPassword } = user
 
     return NextResponse.json(
       {
-        user: userWithoutPassword,
-        token,
+        user: {
+          id: data.data.id,
+          email: data.data.email,
+          firstName: data.data.firstName,
+          lastName: data.data.lastName,
+          role: data.data.role,
+          faculty: data.data.faculty,
+        },
+        token: data.data.token,
       },
       { status: 201 },
     )
   } catch (error) {
-    console.error("[v0] Registration error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Registration proxy error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }
