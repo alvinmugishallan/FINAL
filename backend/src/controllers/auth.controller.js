@@ -17,7 +17,7 @@ export const register = async (req, res) => {
 
     const { email, password, firstName, lastName, role, faculty, department, studentId } = req.body
 
-    const userExists = mockUsers.find(user => user.email === email)
+    const userExists = await User.findOne({ email })
     if (userExists) {
       return res.status(400).json({
         success: false,
@@ -25,20 +25,16 @@ export const register = async (req, res) => {
       })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = {
-      _id: (mockUsers.length + 1).toString(),
+    const newUser = await User.create({
       email,
-      password: hashedPassword,
+      password,
       firstName,
       lastName,
       role,
       faculty,
       department,
       studentId,
-      isActive: true,
-    }
-    mockUsers.push(newUser)
+    })
 
     const token = generateToken(newUser._id)
 
@@ -71,7 +67,7 @@ export const login = async (req, res) => {
 
     const { email, password } = req.body
 
-    const user = mockUsers.find(user => user.email === email)
+    const user = await User.findOne({ email }).select('+password')
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -79,7 +75,7 @@ export const login = async (req, res) => {
       })
     }
 
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await user.comparePassword(password)
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -118,7 +114,7 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = mockUsers.find(user => user._id === req.user.id)
+    const user = await User.findById(req.user.id)
 
     res.json({
       success: true,

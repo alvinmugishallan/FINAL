@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server"
 import { comparePasswords, generateToken } from "@/lib/auth"
-
-// Mock database - shared with register route
-// In production, use real database connection
-const mockUsers: any[] = []
+import { mockUsers } from "@/lib/db"
 
 export async function POST(request: Request) {
   try {

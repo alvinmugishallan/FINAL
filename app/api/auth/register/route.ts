@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server"
 import { hashPassword, generateToken } from "@/lib/auth"
-
-// Mock database - in production, use real database
-const mockUsers: any[] = []
-let nextUserId = 1
+import { mockUsers, getNextUserId } from "@/lib/db"
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
 
     // Create user
     const user = {
-      id: nextUserId++,
+      id: getNextUserId(),
       email,
       passwordHash,
       firstName,
