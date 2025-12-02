@@ -1,7 +1,5 @@
 # UCU Innovators Hub
 
-Generated with BLACKBOX AI Builder
-
 ## Getting Started
 
 First, install the dependencies:
